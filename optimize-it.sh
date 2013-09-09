@@ -40,8 +40,9 @@ do
     [[ -n "$JPEGTRAN" ]] && "$JPEGTRAN" -optimize -progressive -copy all -outfile "$MINIFIED" "$ORIGINAL"
 
     # Strip meta data
-    [[ ${#PRESERVED_TAGS[@]} -gt 0 ]] && PRESERVED_TAGS=(-tagsFromFile "$ORIGINAL" "${PRESERVED_TAGS[@]}")
-    [[ -n "$EXIFTOOL" ]] && "$EXIFTOOL" -quiet −overwrite_original -all= "${PRESERVED_TAGS[@]}" "$MINIFIED"
+    TAGS=()
+    [[ ${#PRESERVED_TAGS[@]} -gt 0 ]] && TAGS=(-tagsFromFile "$ORIGINAL" "${PRESERVED_TAGS[@]}")
+    [[ -n "$EXIFTOOL" ]] && "$EXIFTOOL" -quiet −overwrite_original -all= "${TAGS[@]}" "$MINIFIED"
 done
 
 # Remove original if requested
