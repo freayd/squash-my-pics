@@ -1,12 +1,13 @@
 #!/bin/bash
 
 # Load config
-if [[ ! -e optimize-it.cfg ]]
+DIR=$( dirname "${BASH_SOURCE[0]}" )
+if [[ ! -e "${DIR}/optimize-it.cfg" ]]
 then
     echo 'Config file needed.' >&2
     exit 1
 fi
-source optimize-it.cfg
+source "${DIR}/optimize-it.cfg"
 
 # Search for required programs
 JPEGTRAN=$( command -v jpegtran )
