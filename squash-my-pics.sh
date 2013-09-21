@@ -2,12 +2,12 @@
 
 # Load config
 DIR=$( dirname "${BASH_SOURCE[0]}" )
-if [[ ! -e "${DIR}/optimize-it.cfg" ]]
+if [[ ! -e "${DIR}/squash-my-pics.cfg" ]]
 then
     echo 'Config file needed.' >&2
     exit 1
 fi
-source "${DIR}/optimize-it.cfg"
+source "${DIR}/squash-my-pics.cfg"
 
 # Search for required programs
 JPEGTRAN=$( command -v jpegtran )
@@ -31,18 +31,18 @@ do
     [[ -e "$ORIGINAL" ]] || mv "$FILE" "$ORIGINAL"
 done
 
-# Optimize .original.jpg files and save result to .jpg
+# Squash .original.jpg files and save result to .jpg
 find "$FOLDER" -name '*.original.jpg' -print0 | while read -d $'\0' ORIGINAL
 do
-    MINIFIED=$( echo "$ORIGINAL" | sed 's/\.original\.jpg$/.jpg/' )
+    SQUASHED=$( echo "$ORIGINAL" | sed 's/\.original\.jpg$/.jpg/' )
 
     # Optimize compression (lossless)
-    [[ -n "$JPEGTRAN" ]] && "$JPEGTRAN" -optimize -progressive -copy all -outfile "$MINIFIED" "$ORIGINAL"
+    [[ -n "$JPEGTRAN" ]] && "$JPEGTRAN" -optimize -progressive -copy all -outfile "$SQUASHED" "$ORIGINAL"
 
     # Strip meta data
     TAGS=()
     [[ ${#PRESERVED_TAGS[@]} -gt 0 ]] && TAGS=(-tagsFromFile "$ORIGINAL" "${PRESERVED_TAGS[@]}")
-    [[ -n "$EXIFTOOL" ]] && "$EXIFTOOL" -quiet −overwrite_original -all= "${TAGS[@]}" "$MINIFIED"
+    [[ -n "$EXIFTOOL" ]] && "$EXIFTOOL" -quiet −overwrite_original -all= "${TAGS[@]}" "$SQUASHED"
 done
 
 # Remove original if requested
