@@ -1,10 +1,14 @@
 #!/bin/bash
 
+# Output date format
+shopt -s expand_aliases
+alias date='date "+[%F %T]"'
+
 # Load config
 DIR=$( dirname "${BASH_SOURCE[0]}" )
 if [[ ! -e "${DIR}/squash-my-pics.cfg" ]]
 then
-    echo 'Config file needed.' >&2
+    echo $( date )' Config file needed.' >&2
     exit 1
 fi
 source "${DIR}/squash-my-pics.cfg"
@@ -19,7 +23,7 @@ then
 fi
 if [[ -z $JPEGTRAN && -z $EXIFTOOL ]]
 then
-    echo 'Either jpegtran or exiftool need to be installed.' >&2
+    echo $( date )' Either jpegtran or exiftool need to be installed.' >&2
     exit 1
 fi
 
@@ -35,14 +39,23 @@ done
 find "$FOLDER" -name '*.original.jpg' -print0 | while read -d $'\0' ORIGINAL
 do
     SQUASHED=$( echo "$ORIGINAL" | sed 's/\.original\.jpg$/.jpg/' )
+    echo $( date )" Processing '$SQUASHED'..."
 
-    # Optimize compression (lossless)
-    [[ -n "$JPEGTRAN" ]] && "$JPEGTRAN" -optimize -progressive -copy all -outfile "$SQUASHED" "$ORIGINAL"
+    # Optimize compression (jpegtran)
+    if [[ -n "$JPEGTRAN" ]]
+    then
+        echo $( date )' > Compress...'
+        "$JPEGTRAN" -optimize -progressive -copy all -outfile "$SQUASHED" "$ORIGINAL"
+    fi
 
-    # Strip meta data
-    TAGS=()
-    [[ ${#PRESERVED_TAGS[@]} -gt 0 ]] && TAGS=(-tagsFromFile "$ORIGINAL" "${PRESERVED_TAGS[@]}")
-    [[ -n "$EXIFTOOL" ]] && "$EXIFTOOL" -quiet −overwrite_original -all= "${TAGS[@]}" "$SQUASHED"
+    # Strip meta data (ExifTool)
+    if [[ -n "$EXIFTOOL" ]]
+    then
+        echo $( date )' > Strip meta data...'
+        TAGS=()
+        [[ ${#PRESERVED_TAGS[@]} -gt 0 ]] && TAGS=(-tagsFromFile "$ORIGINAL" "${PRESERVED_TAGS[@]}")
+        "$EXIFTOOL" -quiet -quiet −overwrite_original -all= "${TAGS[@]}" "$SQUASHED"
+    fi
 done
 
 # Remove original if requested
