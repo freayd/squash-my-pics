@@ -27,25 +27,27 @@ then
     exit 1
 fi
 
-# Append '.original' to filenames (unless this file already exists)
-find "$FOLDER" -name '*.jpg' ! -name '*.original.jpg' -print0 | while read -d $'\0' FILE
+# Iterate over file arguments
+for FILE in "$@"
 do
+
+    # Skip if file doesn't exists
+    if [[ ! -e "$FILE" ]]
+    then
+        echo $( date )" File '$FILE' not found." >&2
+        continue
+    fi
+
+    # Append '.original' to filenames
     ORIGINAL=$( echo "$FILE" | sed 's/\.jpg$/.original.jpg/' )
-
-    [[ -e "$ORIGINAL" ]] || mv "$FILE" "$ORIGINAL"
-done
-
-# Squash .original.jpg files and save result to .jpg
-find "$FOLDER" -name '*.original.jpg' -print0 | while read -d $'\0' ORIGINAL
-do
-    SQUASHED=$( echo "$ORIGINAL" | sed 's/\.original\.jpg$/.jpg/' )
-    echo $( date )" Processing '$SQUASHED'..."
+    mv -f "$FILE" "$ORIGINAL"
+    echo $( date )" Processing '$FILE'..."
 
     # Optimize compression (jpegtran)
     if [[ -n "$JPEGTRAN" ]]
     then
         echo $( date )' > Compress...'
-        "$JPEGTRAN" -optimize -progressive -copy all -outfile "$SQUASHED" "$ORIGINAL"
+        "$JPEGTRAN" -optimize -progressive -copy all -outfile "$FILE" "$ORIGINAL"
     fi
 
     # Strip meta data (ExifTool)
@@ -54,12 +56,10 @@ do
         echo $( date )' > Strip meta data...'
         TAGS=()
         [[ ${#PRESERVED_TAGS[@]} -gt 0 ]] && TAGS=(-tagsFromFile "$ORIGINAL" "${PRESERVED_TAGS[@]}")
-        "$EXIFTOOL" -quiet -quiet −overwrite_original -all= "${TAGS[@]}" "$SQUASHED"
+        "$EXIFTOOL" -quiet -quiet −overwrite_original -all= "${TAGS[@]}" "$FILE"
     fi
-done
 
-# Remove original if requested
-$KEEP_ORIGINAL || (find "$FOLDER" -name '*.original.jpg' -print0 | while read -d $'\0' FILE
-do
-    rm -f "$FILE"
-done)
+    # Keep original only if requested
+    $KEEP_ORIGINAL || rm -f "$ORIGINAL"
+
+done
