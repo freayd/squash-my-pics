@@ -48,6 +48,8 @@ do
     then
         echo $( date )' > Compress...'
         "$JPEGTRAN" -optimize -progressive -copy all -outfile "$FILE" "$ORIGINAL"
+    else
+        cp "$ORIGINAL" "$FILE"
     fi
 
     # Strip meta data (ExifTool)
