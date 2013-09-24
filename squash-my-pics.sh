@@ -23,8 +23,14 @@ then
 fi
 if [[ -z $JPEGTRAN && -z $EXIFTOOL ]]
 then
-    echo $( date )' Either jpegtran or exiftool need to be installed.' >&2
+    echo $( date )' Either jpegtran or ExifTool need to be installed.' >&2
     exit 1
+elif [[ -z $JPEGTRAN ]]
+then
+    echo $( date )' jpegtran not found, compression unavailable.' >&2
+elif [[ -z $EXIFTOOL ]]
+then
+    echo $( date )" ExifTool not found, meta data can't be stripped." >&2
 fi
 
 # Iterate over file arguments
