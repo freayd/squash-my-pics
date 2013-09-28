@@ -45,12 +45,12 @@ do
     fi
 
     # Append '.original' to filenames
-    ORIGINAL=$( echo "$FILE" | sed 's/\.jpg$/.original.jpg/' )
+    ORIGINAL=$( echo "$FILE" | sed 's/\.jpg$/.original.jpg/' | sed 's/\.png$/.original.png/' )
     mv -f "$FILE" "$ORIGINAL"
     echo $( date )" Processing '$FILE'..."
 
     # Optimize compression (jpegtran)
-    if [[ -n "$JPEGTRAN" ]]
+    if [[ -n "$JPEGTRAN" && "$FILE" == *.jpg ]]
     then
         echo $( date )' > Compress...'
         "$JPEGTRAN" -optimize -progressive -copy all -outfile "$FILE" "$ORIGINAL"
